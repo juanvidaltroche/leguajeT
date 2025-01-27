@@ -22,6 +22,6 @@ xor rdi, rdi
 syscall
 
 print_number:
-    ; código para imprimir un número
+    ; cÃ³digo para imprimir un nÃºmero
     ret
         
