@@ -92,88 +92,15 @@ class Parser:
         return statements
 
 
-# Code Generator
-class AssemblyCodeGenerator:
-    def __init__(self):
-        self.instructions = []
-        self.variables = {}
-        self.variable_count = 0
-
-    def allocate_variable(self, name):
-        if name not in self.variables:
-            self.variables[name] = f"[rbp-{8 * (self.variable_count + 1)}]"
-            self.variable_count += 1
-        return self.variables[name]
-
-    def generate_expression(self, expr):
-        if isinstance(expr, tuple):
-            operator, left, right = expr
-            self.generate_expression(left)
-            self.instructions.append("push rax")
-            self.generate_expression(right)
-            self.instructions.append("pop rbx")
-            if operator == "+":
-                self.instructions.append("add rax, rbx")
-            elif operator == "-":
-                self.instructions.append("sub rax, rbx")
-            elif operator == "*":
-                self.instructions.append("imul rax, rbx")
-            elif operator == "/":
-                self.instructions.append("mov rdx, 0")
-                self.instructions.append("div rbx")
-        else:
-            if expr.isdigit():
-                self.instructions.append(f"mov rax, {expr}")
-            else:
-                var_addr = self.variables.get(expr)
-                if not var_addr:
-                    raise RuntimeError(f"Variable no definida: {expr}")
-                self.instructions.append(f"mov rax, qword {var_addr}")
-
-    def generate(self, ast):
-        self.instructions.append("section .data")
-        self.instructions.append("section .bss")
-        self.instructions.append("section .text")
-        self.instructions.append("global _start")
-        self.instructions.append("_start:")
-
-        for statement in ast:
-            if statement[0] == "assign":
-                _, identifier, expression = statement
-                self.generate_expression(expression)
-                var_addr = self.allocate_variable(identifier)
-                self.instructions.append(f"mov qword {var_addr}, rax")
-            elif statement[0] == "print":
-                _, identifier = statement
-                var_addr = self.variables.get(identifier)
-                if not var_addr:
-                    raise RuntimeError(f"Variable no definida: {identifier}")
-                self.instructions.append(f"mov rax, qword {var_addr}")
-                self.instructions.append("call print_number")
-
-        self.instructions.append("mov rax, 60")
-        self.instructions.append("xor rdi, rdi")
-        self.instructions.append("syscall")
-
-        self.instructions.append("""
-print_number:
-    ; código para imprimir un número
-    ret
-        """)
-
-    def write_to_file(self, filename):
-        with open(filename, "w") as f:
-            f.write("\n".join(self.instructions))
-
-
 
 # Programa principal
 if __name__ == "__main__":
     code = """
     a = 10
     b = 20
+    c = 0
     c = a + b * 2
-    
+    print c
     """
     rules = [
         ("NUMBER", r"\d+"),
@@ -193,12 +120,14 @@ if __name__ == "__main__":
     tokens = lexer.tokenize(code)
     parser = Parser(tokens)
     ast = parser.parse()
+    print("lexer:", lexer)
+    print("\n")
+    print("tokens:", tokens)
+    print("\n")
+    print("parser:", parser)
+    print("\n")
+    print("AST:", ast)
 
-    generator = AssemblyCodeGenerator()
-    generator.generate(ast)
-
-    output_file = "program.asm"
-    generator.write_to_file(output_file)
-    print(f"Código ensamblador generado en: {output_file}")
+   
 
 
