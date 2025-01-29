@@ -3,11 +3,11 @@ from tkinter import Tk, Label, Entry, Button, Text, END, messagebox
 
 # Definición de tokens
 TOKENS = [
-    ('NUMBER', r'\d+'),           # Números enteros
-    ('PLUS', r'\+'),              # Operador suma
-    ('MINUS', r'-'),              # Operador resta
-    ('MULTIPLY', r'\*'),          # Operador multiplicación
-    ('DIVIDE', r'/'),             # Operador división
+    ('NUMERO', r'\d+'),           # Números enteros
+    ('SUMA', r'\+'),              # Operador suma
+    ('RESTA', r'-'),              # Operador resta
+    ('MULTIPLICACION', r'\*'),    # Operador multiplicación
+    ('DIVISION', r'/'),           # Operador división
     ('LPAREN', r'\('),            # Paréntesis izquierdo
     ('RPAREN', r'\)'),            # Paréntesis derecho
     ('SKIP', r'[ \t]+'),          # Espacios en blanco (ignorar)
@@ -34,13 +34,13 @@ def lexer(input_text):
 # Clase para representar nodos del AST
 class ASTNode:
     def __init__(self, type, value=None, left=None, right=None):
-        self.type = type  # Tipo de nodo (NUMBER, PLUS, MINUS, etc.)
+        self.type = type  # Tipo de nodo (NUMERO, SUMA, RESTA, etc.)
         self.value = value  # Valor (solo para números)
         self.left = left  # Hijo izquierdo
         self.right = right  # Hijo derecho
 
     def __repr__(self):
-        if self.type == 'NUMBER':
+        if self.type == 'NUMERO':
             return f"ASTNode({self.type}, {self.value})"
         else:
             return f"ASTNode({self.type}, left={self.left}, right={self.right})"
@@ -68,9 +68,9 @@ class Parser:
 
     # Regla para Factor
     def factor(self):
-        if self.current_token and self.current_token[0] == 'NUMBER':
+        if self.current_token and self.current_token[0] == 'NUMERO':
             value = int(self.current_token[1])
-            node = ASTNode('NUMBER', value=value)
+            node = ASTNode('NUMERO', value=value)
             self.next_token()
             return node
         elif self.current_token and self.current_token[0] == 'LPAREN':
@@ -84,7 +84,7 @@ class Parser:
     # Regla para Term
     def term(self):
         node = self.factor()
-        while self.current_token and self.current_token[0] in ('MULTIPLY', 'DIVIDE'):
+        while self.current_token and self.current_token[0] in ('MULTIPLICACION', 'DIVISION'):
             op = self.current_token[1]
             self.next_token()
             right = self.factor()
@@ -94,7 +94,7 @@ class Parser:
     # Regla para Expr
     def expr(self):
         node = self.term()
-        while self.current_token and self.current_token[0] in ('PLUS', 'MINUS'):
+        while self.current_token and self.current_token[0] in ('SUMA', 'RESTA'):
             op = self.current_token[1]
             self.next_token()
             right = self.term()
@@ -107,7 +107,7 @@ class Parser:
 
 # Función para evaluar el AST
 def evaluate_ast(node):
-    if node.type == 'NUMBER':
+    if node.type == 'NUMERO':
         return node.value
     elif node.type == '+':
         return evaluate_ast(node.left) + evaluate_ast(node.right)
@@ -123,8 +123,8 @@ def evaluate_ast(node):
 # Función para mostrar el AST en texto
 def ast_to_text(node, level=0):
     indent = "  " * level
-    if node.type == 'NUMBER':
-        return f"{indent}NUMBER({node.value})\n"
+    if node.type == 'NUMERO':
+        return f"{indent}NUMERO({node.value})\n"
     else:
         text = f"{indent}{node.type}\n"
         text += ast_to_text(node.left, level + 1)
